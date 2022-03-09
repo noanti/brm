@@ -49,7 +49,7 @@ def download(url, path):
 
 def start():
     logging.info('starting server')
-    os.system('chmod + x./server/bedrock_server')
+    os.system('chmod +x ./server/bedrock_server')
     os.system('./server/bedrock_server')
 
 
