@@ -48,16 +48,17 @@ def download(url, path):
 
 
 def start():
-    os.chdir(SERVER_DIR)
-    os.system('./bedrock_server')
+    logging.info('starting server')
+    os.system('./server/bedrock_server')
 
 
 def stop():
-    os.chdir(SERVER_DIR)
-    os.system('./bedrock_server stop')
+    logging.info('killing server')
+    os.system('pkill -f server/bedrock_server')
 
 
-def update():
+def run():
+    stop()
     url, version = get_latest_download_url()
     local_path = os.path.join(DOWNLOADS_DIR, f'{version}.zip')
     if not os.path.exists(local_path):
@@ -67,21 +68,24 @@ def update():
     with zipfile.ZipFile(local_path, 'r') as zip_ref:
         zip_ref.extractall(SERVER_DIR)
 
-
-def init():
-    os.makedirs(DOWNLOADS_DIR, exist_ok=True)
-    os.makedirs(SERVER_DIR, exist_ok=True)
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-    update()
     for f in config_files:
-        os.system(f'mv {SERVER_DIR}/{f} {CONFIG_DIR}/')
+        if os.path.exists(f'{CONFIG_DIR}/{f}'):
+            os.system(f'rm {SERVER_DIR}/{f}')
+        else:
+            os.system(f'mv {SERVER_DIR}/{f} {CONFIG_DIR}')
         os.system(f'ln -s ../{CONFIG_DIR}/{f} {SERVER_DIR}/{f}')
+
+    start()
 
 
 def main():
     os.makedirs(MAIN_DIR, exist_ok=True)
     os.chdir(MAIN_DIR)
-    init()
+    os.makedirs(DOWNLOADS_DIR, exist_ok=True)
+    os.makedirs(SERVER_DIR, exist_ok=True)
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+
+    run()
 
 
 if __name__ == '__main__':
