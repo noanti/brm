@@ -4,12 +4,15 @@ import httpx
 import zipfile
 import logging
 from tqdm import tqdm
+from os.path import expanduser
 
 logging.basicConfig(level='INFO')
 
 HOMEPAGE = "https://www.minecraft.net/en-us/download/server/bedrock"
 DOWNLOAD_URL_REGEX = re.compile(r"https://minecraft.azureedge.net/bin-linux/bedrock-server-([\d.]+).zip")
 
+HOME = expanduser("~")
+MAIN_DIR = os.path.join(HOME, ".brm")
 DOWNLOADS_DIR = 'downloads'
 SERVER_DIR = 'server'
 CONFIG_DIR = 'config'
@@ -76,8 +79,8 @@ def init():
 
 
 def main():
-    os.makedirs('~/.brm', exist_ok=True)
-    os.chdir('~/.brm')
+    os.makedirs(MAIN_DIR, exist_ok=True)
+    os.chdir(MAIN_DIR)
     init()
 
 

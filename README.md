@@ -8,8 +8,8 @@ pip3 install git+https://github.com/noanti/brm.git
 ```
 
 ### Usage
-Download the latest version of server and run it. The minecraft config file and worlds will in path `~/.brm/config`
 ```shell
 brm start
 ```
+This will download the latest version of server and run it. The minecraft config file and worlds will in path `~/.brm/config`
 
