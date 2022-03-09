@@ -1,10 +1,13 @@
 import os
 import re
+import time
+
 import httpx
 import zipfile
 import logging
 from tqdm import tqdm
 from os.path import expanduser
+import subprocess
 
 logging.basicConfig(level='INFO')
 
@@ -47,21 +50,9 @@ def download(url, path):
                     num_bytes_downloaded = response.num_bytes_downloaded
 
 
-def start():
-    logging.info('starting server')
-    os.system('chmod +x ./server/bedrock_server')
-    os.system('./server/bedrock_server')
-
-
-def stop():
-    logging.info('killing server')
-    os.system('pkill -f server/bedrock_server')
-
-
-def run():
-    stop()
-    url, version = get_latest_download_url()
-    local_path = os.path.join(DOWNLOADS_DIR, f'{version}.zip')
+def setup_latest_server():
+    url, latest_version = get_latest_download_url()
+    local_path = os.path.join(DOWNLOADS_DIR, f'{latest_version}.zip')
     if not os.path.exists(local_path):
         download(url, local_path)
 
@@ -75,8 +66,20 @@ def run():
         else:
             os.system(f'mv {SERVER_DIR}/{f} {CONFIG_DIR}')
         os.system(f'ln -s ../{CONFIG_DIR}/{f} {SERVER_DIR}/{f}')
+    os.system('chmod +x ./server/bedrock_server')
+    with open('CURRENT_VERSION', 'w') as f:
+        f.write(latest_version)
 
-    start()
+
+def check_outdated():
+    if not os.path.exists('CURRENT_VERSION'):
+        return True
+
+    with open('CURRENT_VERSION') as f:
+        current_version = f.read()
+
+    url, latest_version = get_latest_download_url()
+    return latest_version != current_version
 
 
 def main():
@@ -86,7 +89,20 @@ def main():
     os.makedirs(SERVER_DIR, exist_ok=True)
     os.makedirs(CONFIG_DIR, exist_ok=True)
 
-    run()
+    if check_outdated():
+        logging.info('current version is outdated, updating')
+        setup_latest_server()
+
+    server_process = subprocess.Popen(['./bedrock_server'], cwd='server')
+
+    while 1:
+        if check_outdated():
+            server_process.kill()
+            logging.info('current version is outdated, updating')
+            setup_latest_server()
+            server_process = subprocess.Popen(['./bedrock_server'], cwd='server')
+
+        time.sleep(3600)
 
 
 if __name__ == '__main__':
