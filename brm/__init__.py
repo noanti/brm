@@ -19,7 +19,7 @@ MAIN_DIR = os.path.join(HOME, ".brm")
 DOWNLOADS_DIR = 'downloads'
 SERVER_DIR = 'server'
 CONFIG_DIR = 'config'
-config_files = ['server.properties', 'allowlist.json', 'permissions.json']
+config_files = ['server.properties', 'allowlist.json', 'permissions.json', 'worlds']
 
 
 def get_latest_download_url():
@@ -88,6 +88,7 @@ def main():
     os.makedirs(DOWNLOADS_DIR, exist_ok=True)
     os.makedirs(SERVER_DIR, exist_ok=True)
     os.makedirs(CONFIG_DIR, exist_ok=True)
+    os.makedirs(f'{CONFIG_DIR}/worlds', exist_ok=True)
 
     if check_outdated():
         logging.info('current version is outdated, updating')
@@ -96,11 +97,14 @@ def main():
     server_process = subprocess.Popen(['./bedrock_server'], cwd='server')
 
     while 1:
-        if check_outdated():
-            server_process.kill()
-            logging.info('current version is outdated, updating')
-            setup_latest_server()
-            server_process = subprocess.Popen(['./bedrock_server'], cwd='server')
+        try:
+            if check_outdated():
+                logging.info('current version is outdated, updating')
+                setup_latest_server()
+                server_process.kill()
+                server_process = subprocess.Popen(['./bedrock_server'], cwd='server')
+        except Exception:
+            pass
 
         time.sleep(3600)
 
